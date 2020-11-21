@@ -16,12 +16,29 @@ public class Collection
     public string title;
     public Sprite image;
     public List<Item> contents;
+
+    public int Found()
+    {
+        return contents.FindAll((item) => item.collected).Count;
+    }
+
+    public int Size()
+    {
+        return contents.Count;
+    }
 }
 
 public class Collections : MonoBehaviour
 {
     public List<Collection> collections;
+    public CollectionMenu menu;
     public Content content;
+    int pageOffset = 0;
+
+    void Start()
+    {
+        UpdatePages();
+    }
 
     public void OpenCollection(int collection)
     {
@@ -30,13 +47,11 @@ public class Collections : MonoBehaviour
         {
             if (i < data.contents.Count && data.contents[i].collected)
             {
-                content.images[i].sprite = data.contents[i].image;
-                content.images[i].enabled = true;
+                content.SetImage(i, data.contents[i].image);
             }
             else
             {
-                content.images[i].sprite = null;
-                content.images[i].enabled = false;
+                content.HideImage(i);
             }
         }
 
@@ -64,6 +79,47 @@ public class Collections : MonoBehaviour
                 "Item {0} {1} does not exist",
                 title,
                 index);
+        }
+    }
+
+    public void UpdatePages()
+    {
+        for (int i = 0; i < menu.Options(); ++i)
+        {
+            if (pageOffset + i < collections.Count)
+            {
+                Collection collection = collections[pageOffset + i];
+                menu.SetOption(
+                    i,
+                    collection.image,
+                    string.Format(
+                        "{0} {1}/{2}",
+                        collection.title,
+                        collection.Found(),
+                        collection.Size()));
+            }
+            else
+            {
+                menu.HideOption(i);
+            }
+        }
+    }
+
+    public void PageLeft()
+    {
+        if (pageOffset > 0)
+        {
+            pageOffset -= menu.Options();
+            UpdatePages();
+        }
+    }
+
+    public void PageRight()
+    {
+        if (pageOffset < collections.Count - menu.Options())
+        {
+            pageOffset += menu.Options();
+            UpdatePages();
         }
     }
 }
